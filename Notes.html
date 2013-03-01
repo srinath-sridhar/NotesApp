@@ -1,0 +1,63 @@
+<html>
+<head>
+   <title>Local Storage Test</title>
+   <style type="text/css">
+    body {width: 1000px; height: 1000px; margin-left: 8cm; margin-top: 3cm; }
+    pre {color:blue; font-size: 20px; margin-left: 250px; font-family:Consolas,"Liberation Mono", Courier, monospace; font-size: 40px;}
+    input {height: 70px; width: 500px; margin-left: 250px; margin-top: 150px; font-size: 40px; text-align: left;
+           font-family:Consolas,"Liberation Mono", Courier, monospace;}
+</style>
+    <link
+</head>
+<body>
+    <input id="new-item-textbox" type="text" placeholder="Type something here" onkeypress="createNewNote(event)"/>
+    <div id="all-items">
+
+    </div>
+    <script type="text/javascript">
+
+        notes = []
+        loadNotes = function() {
+            if(typeof(Storage)!=="undefined") {
+                if(localStorage['notes'] != null)
+                    notes = JSON.parse(localStorage['notes']);
+                notes.forEach(appendNote);
+            }
+            else {
+                console.log("your browser does not support localStorage");
+            }
+        }
+        saveNotes = function() {
+            localStorage['notes']=JSON.stringify(notes);
+        }
+        escapeHtml = function(str) {
+            str = str.replace(/</g,"&lt;");
+            return str.replace(/>/g,"&gt;");
+        }
+        storeLocally = function(text) {
+            notes.push(text);
+        }
+        appendNote = function(text) {
+            var newitem= document.createElement("pre");
+            newitem.innerHTML = text;
+            var div_tag = document.getElementById("all-items");
+            div_tag.appendChild(newitem);
+        }
+        createNewNote = function(e) {            
+            var keyCode = (e.keyCode ? e.keyCode : e.which);
+            if(keyCode == 13){     
+                var text = document.getElementById("new-item-textbox").value;       
+                text =  escapeHtml(text);
+                storeLocally(text);
+                appendNote(text);
+            }
+        }
+        deleteNote = function(noteid) {
+
+        }
+        window.onload = loadNotes;
+        window.onbeforeunload = saveNotes;
+
+    </script>
+</body>
+</html>
