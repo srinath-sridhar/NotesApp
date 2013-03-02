@@ -1,63 +1,118 @@
 <html>
-<head>
-   <title>Local Storage Test</title>
-   <style type="text/css">
-    body {width: 1000px; height: 1000px; margin-left: 8cm; margin-top: 3cm; }
-    pre {color:blue; font-size: 20px; margin-left: 250px; font-family:Consolas,"Liberation Mono", Courier, monospace; font-size: 40px;}
-    input {height: 70px; width: 500px; margin-left: 250px; margin-top: 150px; font-size: 40px; text-align: left;
-           font-family:Consolas,"Liberation Mono", Courier, monospace;}
-</style>
-    <link
-</head>
-<body>
-    <input id="new-item-textbox" type="text" placeholder="Type something here" onkeypress="createNewNote(event)"/>
-    <div id="all-items">
+   <head>
+		<title>My Notes</title>
+		<style type="text/css">
+			body {
+				width: 1000px;
+				height: 1000px;
+				margin-left: 5cm;
+				margin-top: 1cm;
+			}
+			pre {
+				color: blue;
+				font-size: 20px;				
+				font-family: Consolas, "Liberation Mono", Courier, monospace;
+				font-size: 40px;
+			}
+			input {
+				height: 70px;
+				width: 500px;							
+				font-size: 40px;
+				text-align: left;
+				font-family: Consolas, "Liberation Mono", Courier, monospace;
+			}
+		</style>
+		<link
+		</head>
+		<body>
+		<div style="width: 32px; height: 32px;">
+		<!--<svg>
+		<path style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);" fill="#333333" stroke="none" d="M16,5.333C8.268,5.333,2,10.033999999999999,2,15.833C2,17.815,2.741,19.666,4.016,21.247L2,25.667L7.613,24.226000000000003C9.952,25.543000000000003,12.850000000000001,26.333000000000002,16,26.333000000000002C23.732,26.333000000000002,30,21.632,30,15.833000000000002C30,10.034,23.732,5.333,16,5.333Z"></path>
+		</svg>-->
+		</div>
 
-    </div>
-    <script type="text/javascript">
+		<input id="new-item-textbox" type="text" placeholder="Type something here" onkeypress="createNewNote(event)"/>
+		<div id="all-items">
+		</div>
+		<script type="text/javascript">
+			notes = {}
+			maxNotes = 200
+			loadNotes = function() {
+				if ( typeof (Storage) !== "undefined") {
+					if (localStorage['notes'] != null)
+						// toggle next two lines to reset local store 
+						//delete localStorage['notes'];
+						notes = JSON.parse(localStorage['notes']);
+						
+					for( var noteId in notes) {
+						appendNote(notes[noteId], noteId);
+					}					
+				} else {
+					console.log("your browser does not support localStorage");
+					
+				}
+				
+			}
+			saveNotes = function() {
+				localStorage['notes'] = JSON.stringify(notes);
+			}
+			escapeHtml = function(str) {
+				str = str.replace(/</g, "&lt;");
+				return str.replace(/>/g, "&gt;");
+			}
+			storeLocally = function(text) {
+				noteId = generateNextNoteId();
+				notes[noteId] = text;
+				return noteId;
+			}
+			createNoteElem = function(text, noteId) {
+				var newItem = document.createElement("pre");
+				newItem.innerHTML = text;
+				newItem.id = noteId;
+				return newItem;
+			}
+			createNoteDeleteButton = function(noteItem) {
+				deleteButton = document.createElement("a");
+				deleteButton.setAttribute("onClick","deleteNote(event)");
+				deleteButton.class = "note-delete-button"
+				deleteButton.innerHTML = "delete" 
+				noteItem.appendChild(deleteButton);
+			}
+			appendNote = function(text, index) {
+				var newItem = createNoteElem(text, index);
+				createNoteDeleteButton(newItem);
+				var divTag = document.getElementById("all-items");
+				divTag.appendChild(newItem);
+			}
+			generateNextNoteId = function() {				
+				return "note-"+(Object.keys(notes).length <= maxNotes ? Object.keys(notes).length : 0); 
+			}
+			createNewNote = function(e) {
+				var keyCode = (e.keyCode ? e.keyCode : e.which);
+				if (keyCode == 13) {
+					textBox = document.getElementById("new-item-textbox");
+					text = textBox.value;
+					text = escapeHtml(text);
+					noteId = storeLocally(text);
+					appendNote(text, noteId);
+					textBox.value = "";
+				}
+			}
+			deleteLocally = function(noteId) {
+				console.log("deleting note " + noteId);
+				if (noteId in notes) {
+					delete notes[noteId];
+				}
+			}
+			deleteNote = function(e) {
+				noteElement = e.srcElement.parentNode;
+				deleteLocally(noteElement.id);
+				allNotes = noteElement.parentNode;
+				allNotes.removeChild(noteElement);
+			}
+			window.onload = loadNotes;
+			window.onbeforeunload = saveNotes;
 
-        notes = []
-        loadNotes = function() {
-            if(typeof(Storage)!=="undefined") {
-                if(localStorage['notes'] != null)
-                    notes = JSON.parse(localStorage['notes']);
-                notes.forEach(appendNote);
-            }
-            else {
-                console.log("your browser does not support localStorage");
-            }
-        }
-        saveNotes = function() {
-            localStorage['notes']=JSON.stringify(notes);
-        }
-        escapeHtml = function(str) {
-            str = str.replace(/</g,"&lt;");
-            return str.replace(/>/g,"&gt;");
-        }
-        storeLocally = function(text) {
-            notes.push(text);
-        }
-        appendNote = function(text) {
-            var newitem= document.createElement("pre");
-            newitem.innerHTML = text;
-            var div_tag = document.getElementById("all-items");
-            div_tag.appendChild(newitem);
-        }
-        createNewNote = function(e) {            
-            var keyCode = (e.keyCode ? e.keyCode : e.which);
-            if(keyCode == 13){     
-                var text = document.getElementById("new-item-textbox").value;       
-                text =  escapeHtml(text);
-                storeLocally(text);
-                appendNote(text);
-            }
-        }
-        deleteNote = function(noteid) {
-
-        }
-        window.onload = loadNotes;
-        window.onbeforeunload = saveNotes;
-
-    </script>
-</body>
+		</script>
+		</body>
 </html>
