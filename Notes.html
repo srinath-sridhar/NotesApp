@@ -1,118 +1,242 @@
 <html>
-   <head>
-		<title>My Notes</title>
-		<style type="text/css">
-			body {
-				width: 1000px;
-				height: 1000px;
-				margin-left: 5cm;
-				margin-top: 1cm;
-			}
-			pre {
-				color: blue;
-				font-size: 20px;				
-				font-family: Consolas, "Liberation Mono", Courier, monospace;
-				font-size: 40px;
-			}
-			input {
-				height: 70px;
-				width: 500px;							
-				font-size: 40px;
-				text-align: left;
-				font-family: Consolas, "Liberation Mono", Courier, monospace;
-			}
-		</style>
-		<link
-		</head>
-		<body>
-		<div style="width: 32px; height: 32px;">
-		<!--<svg>
-		<path style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);" fill="#333333" stroke="none" d="M16,5.333C8.268,5.333,2,10.033999999999999,2,15.833C2,17.815,2.741,19.666,4.016,21.247L2,25.667L7.613,24.226000000000003C9.952,25.543000000000003,12.850000000000001,26.333000000000002,16,26.333000000000002C23.732,26.333000000000002,30,21.632,30,15.833000000000002C30,10.034,23.732,5.333,16,5.333Z"></path>
-		</svg>-->
-		</div>
+    <head>
+        <title>My Notes</title>
+        <style type="text/css">
+            body {
+                /*margin-left: 5cm;
+                margin-top: 1cm;*/
+                color: #333333;
+                background-color: #eeeeee;
+                line-height: 20px;
+            }
+            .note-delete-button {
+                height: 30px;
+                background-color: inherit;
+                background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><path d='M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z'></path></svg>");
+            }
+            .note-text {
+                font-family: Consolas, "Liberation Mono", Courier, monospace;
+            }
+            #all-notes {
+                padding-top: 10px;
+                width :100%;
+                position: absolute;
+            }
 
-		<input id="new-item-textbox" type="text" placeholder="Type something here" onkeypress="createNewNote(event)"/>
-		<div id="all-items">
-		</div>
-		<script type="text/javascript">
-			notes = {}
-			maxNotes = 200
-			loadNotes = function() {
-				if ( typeof (Storage) !== "undefined") {
-					if (localStorage['notes'] != null)
-						// toggle next two lines to reset local store 
-						//delete localStorage['notes'];
-						notes = JSON.parse(localStorage['notes']);
-						
-					for( var noteId in notes) {
-						appendNote(notes[noteId], noteId);
-					}					
-				} else {
-					console.log("your browser does not support localStorage");
-					
-				}
-				
-			}
-			saveNotes = function() {
-				localStorage['notes'] = JSON.stringify(notes);
-			}
-			escapeHtml = function(str) {
-				str = str.replace(/</g, "&lt;");
-				return str.replace(/>/g, "&gt;");
-			}
-			storeLocally = function(text) {
-				noteId = generateNextNoteId();
-				notes[noteId] = text;
-				return noteId;
-			}
-			createNoteElem = function(text, noteId) {
-				var newItem = document.createElement("pre");
-				newItem.innerHTML = text;
-				newItem.id = noteId;
-				return newItem;
-			}
-			createNoteDeleteButton = function(noteItem) {
-				deleteButton = document.createElement("a");
-				deleteButton.setAttribute("onClick","deleteNote(event)");
-				deleteButton.class = "note-delete-button"
-				deleteButton.innerHTML = "delete" 
-				noteItem.appendChild(deleteButton);
-			}
-			appendNote = function(text, index) {
-				var newItem = createNoteElem(text, index);
-				createNoteDeleteButton(newItem);
-				var divTag = document.getElementById("all-items");
-				divTag.appendChild(newItem);
-			}
-			generateNextNoteId = function() {				
-				return "note-"+(Object.keys(notes).length <= maxNotes ? Object.keys(notes).length : 0); 
-			}
-			createNewNote = function(e) {
-				var keyCode = (e.keyCode ? e.keyCode : e.which);
-				if (keyCode == 13) {
-					textBox = document.getElementById("new-item-textbox");
-					text = textBox.value;
-					text = escapeHtml(text);
-					noteId = storeLocally(text);
-					appendNote(text, noteId);
-					textBox.value = "";
-				}
-			}
-			deleteLocally = function(noteId) {
-				console.log("deleting note " + noteId);
-				if (noteId in notes) {
-					delete notes[noteId];
-				}
-			}
-			deleteNote = function(e) {
-				noteElement = e.srcElement.parentNode;
-				deleteLocally(noteElement.id);
-				allNotes = noteElement.parentNode;
-				allNotes.removeChild(noteElement);
-			}
-			window.onload = loadNotes;
-			window.onbeforeunload = saveNotes;
+            .MyNotesApp {
+                background-color: #ffffff;
+                width:50%;
+                height: auto;
+                position: absolute;
+                left: 25%;
+                font-family: Consolas, "Liberation Mono", Courier, monospace;
+            }
+            .noteDone {
+                text-decoration: line-through;
+            }
+            #stats {
+                padding: 8px 35px 8px 14px;
+                margin-bottom: 20px;
+                text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+                background-color: #fcf8e3;
+                border: 1px solid #fbeed5;
+                -webkit-border-radius: 4px;
+                -moz-border-radius: 4px;
+                border-radius: 4px;
+                color: #3a87ad;
+                background-color: #d9edf7;
+                border-color: #bce8f1;
+            }
+/*===========================================================================================================*/
+/*this section has style from Twitter Bootstrap with some modifications*/
+            input[type="text"] {
+                background-color: #ffffff;
+                border: 1px solid #cccccc;
+                -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+                -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+                box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+                -webkit-transition: border linear 0.2s, box-shadow linear 0.2s;
+                -moz-transition: border linear 0.2s, box-shadow linear 0.2s;
+                -o-transition: border linear 0.2s, box-shadow linear 0.2s;
+                transition: border linear 0.2s, box-shadow linear 0.2s;
 
-		</script>
-		</body>
+                display: inline-block;
+                height: 45px;
+                padding: 4px 6px;
+                margin-bottom: 10px;
+                font-size: 14px;
+                line-height: 20px;
+                color: #555555;
+                vertical-align: middle;
+                -webkit-border-radius: 4px;
+                -moz-border-radius: 4px;
+                border-radius: 4px;
+
+                width: 100%;
+                font-family: Consolas, "Liberation Mono", Courier, monospace;
+            }
+            input[type="text"]:focus {
+                
+                border-color: rgba(82, 168, 236, 0.8);
+                outline: 0;
+                outline: thin dotted \9;
+                /* IE6-9 */
+                -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+                -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+                box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+            }
+            table {
+                  max-width: 100%;
+                  background-color: transparent;
+                  border-collapse: collapse;
+                  border-spacing: 0;
+                  width: 100%;
+                  table-layout: fixed;
+            }
+
+            table tr:nth-child(odd) {
+                background-color: #f1f1f1;
+            }
+            table tr:nth-child(even) {
+                background-color: #ffffff;
+             }
+
+/*===========================================================================================================*/
+        </style>
+    </head>
+    <body>
+        <div class="MyNotesApp">
+            <h3 style="text-align:center">My Todo List</h3>
+            <input id="new-item-textbox" type="text" placeholder="what has to be done ?" 
+                   onkeypress="createNewNote(event)"/>
+            <div id="stats"></div>
+            <div id="statusMessage"></div>
+            <table id="all-notes">
+                <colgroup width='5%'/>
+                <colgroup width='90%'/>
+                <colgroup width='5%'/>
+            </table>
+            
+        </div>
+        <script type="text/javascript">
+            notes = {}
+            maxNotes = 200
+            notesDoneCount = 0
+            updateStats = function() {
+                statusMessage = document.getElementById("stats");
+                if(notesDoneCount > 0)
+                    statusMessage.innerHTML = notesDoneCount + " tasks remaining";
+                else {
+                    statusMessage.innerHTML = "No pending tasks";
+                }
+            }
+            loadNotes = function() {
+                if ( typeof (Storage) !== "undefined") {
+                    if (localStorage['notes'] != null)
+                        // toggle next two lines to reset local store 
+                        //delete localStorage['notes'];
+                        notes = JSON.parse(localStorage['notes']);
+
+                    for( var noteId in notes) {
+                        appendNote(notes[noteId], noteId);
+                        if(!notes[noteId]['done']) {
+                            notesDoneCount += 1;
+                        }
+                    }                   
+                } else {
+                    console.log("your browser does not support localStorage");
+                }
+                updateStats();
+            }
+            saveNotes = function() {
+                localStorage['notes'] = JSON.stringify(notes);
+            }
+            escapeHtml = function(str) {
+                str = str.replace(/</g, "&lt;");
+                return str.replace(/>/g, "&gt;");
+            }
+            storeLocally = function(text) {
+                noteId = generateNextNoteId();
+                notes[noteId] = {'text':text, 'done':false}
+                notesDoneCount += 1;
+                return noteId;
+            }
+            createNoteElem = function(note, noteId) {
+                var noteDiv = document.createElement("tr");
+                noteDiv.setAttribute("class","note-text-div");
+
+                var noteToggle = document.createElement("input");
+                noteToggle.setAttribute("type", "checkbox");
+                noteToggle.setAttribute("onClick", "toggleNoteDone(event)");
+
+                var noteText = document.createElement("td");
+                noteText.setAttribute("class","note-text");
+                noteText.innerHTML = note['text'];
+                noteText.id = noteId;
+
+                if(note['done']) {
+                    noteText.className = "noteDone";
+                    noteToggle.checked = true;
+                }
+                noteDiv.appendChild(noteToggle);
+                noteDiv.appendChild(noteText);
+                return noteDiv;
+            }
+            createNoteDeleteButton = function(noteItem) {
+                deleteButton = document.createElement("td");
+                deleteButton.setAttribute("onClick","deleteNote(event)");
+                deleteButton.setAttribute("class","note-delete-button");
+                noteItem.appendChild(deleteButton);
+            }
+            appendNote = function(note, index) {
+                var newNote = createNoteElem(note, index);
+                createNoteDeleteButton(newNote);
+                var divTag = document.getElementById("all-notes");
+                divTag.appendChild(newNote);
+            }
+            generateNextNoteId = function() {               
+                return "note-"+(Object.keys(notes).length <= maxNotes ? Object.keys(notes).length : 0); 
+            }
+            createNewNote = function(e) {
+                var keyCode = (e.keyCode ? e.keyCode : e.which);
+                if (keyCode == 13) {
+                    textBox = document.getElementById("new-item-textbox");
+                    text = textBox.value;
+                    text = escapeHtml(text);
+                    noteId = storeLocally(text);
+                    appendNote(notes[noteId], noteId);
+                    textBox.value = "";
+                    updateStats();
+                }
+            }
+            deleteLocally = function(noteId) {
+                if (noteId in notes) {
+                    delete notes[noteId];
+                }
+                notesDoneCount -= 1;
+            }
+            deleteNote = function(e) {
+                noteTextElement = e.srcElement.previousSibling;
+                deleteLocally(noteTextElement.id);
+                allNotes = noteTextElement.parentNode.parentNode;
+                allNotes.removeChild(noteTextElement.parentNode);
+                updateStats();
+            }
+            toggleNoteDone = function(e) {
+                noteTextElement = e.srcElement.nextSibling;                
+                if(notes[noteTextElement.id]['done']) {
+                    noteTextElement.className = "";
+                    notesDoneCount += 1;
+                }
+                else {
+                   noteTextElement.className = "noteDone";
+                   notesDoneCount -= 1;
+                }
+                notes[noteTextElement.id]['done'] = !notes[noteTextElement.id]['done'];
+                updateStats();
+            }
+            window.onload = loadNotes;
+            window.onbeforeunload = saveNotes;
+        </script>
+    </body>
 </html>
