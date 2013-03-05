@@ -211,9 +211,10 @@
             }
             deleteLocally = function(noteId) {
                 if (noteId in notes) {
+                    if(!notes[noteId]['done'])
+    	    	        notesDoneCount -= 1;
                     delete notes[noteId];
-                }
-                notesDoneCount -= 1;
+                }                
             }
             deleteNote = function(e) {
                 noteTextElement = e.srcElement.previousSibling;
